@@ -24,27 +24,29 @@ app.get('/', (req, res) => {
 })
 
 // Route for POST requests
+const seen = new Set()
 app.post('/', (req, res) => {
   const entries = req.body?.entry || []
 
   entries.forEach((entry) => {
-    const changes = entry.changes || []
+    entry.changes?.forEach((change) => {
+      change.value?.statuses?.forEach((s) => {
+        if (s.status !== 'sent') return
+        if (seen.has(s.id)) return
 
-    changes.forEach((change) => {
-      const statuses = change.value?.statuses || []
+        seen.add(s.id)
 
-      statuses.forEach((statusObj) => {
-        const recipientId = statusObj.recipient_id
-        const status = statusObj.status // sent, delivered, read, failed
-        const timestamp = new Date(Number(statusObj.timestamp) * 1000)
+        const ts = new Date(Number(s.timestamp) * 1000)
           .toISOString()
           .replace('T', ' ')
           .slice(0, 19)
 
-        console.log(`${recipientId} - ${status} - ${timestamp}`)
+        console.log(`${s.recipient_id} - sent - ${ts}`)
       })
     })
   })
+
+  res.sendStatus(200)
 })
 // app.post('/', (req, res) => {
 //   const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
