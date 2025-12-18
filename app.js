@@ -31,7 +31,7 @@ app.post('/', (req, res) => {
   entries.forEach((entry) => {
     entry.changes?.forEach((change) => {
       change.value?.statuses?.forEach((s) => {
-        if (s.status !== 'sent') return
+        if (s.status !== 'sent' || s.status !== 'failed') return
         if (seen.has(s.id)) return
 
         seen.add(s.id)
@@ -41,7 +41,7 @@ app.post('/', (req, res) => {
           .replace('T', ' ')
           .slice(0, 19)
 
-        console.log(`${s.recipient_id} - sent - ${ts}`)
+        console.log(`${s.recipient_id} - ${s.status} - ${ts}`)
       })
     })
   })
