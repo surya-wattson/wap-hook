@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
 // Route for POST requests
 const seen = new Set()
 app.post('/', (req, res) => {
-  console.log(JSON.stringify(req.body, null, 2))
+  // console.log(JSON.stringify(req.body, null, 2))
   const entries = req.body?.entry || []
 
   entries.forEach((entry) => {
