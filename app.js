@@ -25,30 +25,39 @@ app.get('/', (req, res) => {
 
 // Route for POST requests
 const seen = new Set()
+
 app.post('/', (req, res) => {
-  // console.log(JSON.stringify(req.body, null, 2))
   const entries = req.body?.entry || []
 
   entries.forEach((entry) => {
     entry.changes?.forEach((change) => {
       change.value?.statuses?.forEach((s) => {
+        // Only care about sent & failed
         if (s.status !== 'sent' && s.status !== 'failed') return
-        if (seen.has(s.id)) return
 
+        // De-duplicate
+        if (seen.has(s.id)) return
         seen.add(s.id)
 
-        const ts = new Date(Number(s.timestamp) * 1000)
-          .toISOString()
-          .replace('T', ' ')
-          .slice(0, 19)
+        const ts = new Date(Number(s.timestamp) * 1000).toISOString().replace('T', ' ').slice(0, 19)
 
-        console.log(`${s.recipient_id} - ${s.status} - ${ts}`)
+        let errorInfo = ''
+
+        if (s.status === 'failed') {
+          const err = s.errors?.[0] // WhatsApp usually sends array
+          if (err) {
+            errorInfo = ` | error_code=${err.code} | error_msg=${err.title || err.message}`
+          }
+        }
+
+        console.log(`${s.recipient_id} - ${s.status} - ${ts}${errorInfo}`)
       })
     })
   })
 
   res.sendStatus(200)
 })
+
 // app.post('/', (req, res) => {
 //   const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
 //   console.log(`\n\nWebhook received ${timestamp}\n`);
